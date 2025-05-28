@@ -34,6 +34,7 @@ This web-based tool helps users quickly determine the right Google Cloud Load Ba
 / (root)
 ├── index.html             # Main HTML with embedded JavaScript logic
 ├── README.md              # Documentation (this file)
+├── LICENSE
 ```
 
 
