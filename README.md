@@ -46,4 +46,4 @@ This project is deployed using **GitHub Pages**:
 
 ## Owner
 
-Kam Bawa [ksbnetworks@gmail.com](mailto:ksbnetworks@gmail.com.com)
+Kamal Bawa [ksbnetworks@gmail.com](mailto:ksbnetworks@gmail.com.com)
