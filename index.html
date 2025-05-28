@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Basic HTML page metadata -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GCP LB Selector</title>
+  
+  <!-- Inline styling for simplicity -->
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+      background-color: #56becb; /* cyan */
+    }
+    .question {
+      margin-top: 1.5rem;
+    }
+    .result {
+      margin-top: 2rem;
+      padding: 1rem;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <h1>GCP Load Balancer Selector</h1>
+
+  <!-- App root where questions and result will render -->
+  <div id="app"></div>
+
+  <!-- Main app logic -->
+  <script>
+    // List of questions with options
+    const questions = [
+      {
+        id: "traffic",
+        q: "What kind of traffic are you handling?",
+        options: { a: "HTTP/S", b: "TCP", c: "UDP", d: "gRPC" }
+      },
+      {
+        id: "users",
+        q: "Where are your users located?",
+        options: { a: "Global", b: "Regional" }
+      },
+      {
+        id: "backend",
+        q: "Where are your backends?",
+        options: { a: "GCE VMs", b: "GKE Pods", c: "Serverless" }
+      },
+      {
+        id: "visibility",
+        q: "Is this for external or internal use?",
+        options: { a: "External", b: "Internal" }
+      },
+      {
+        id: "features",
+        q: "Do you need advanced features?",
+        options: { a: "Yes", b: "No" }
+      },
+    ];
+
+    // Predefined rules that map user answers to a recommendation
+    const rules = [
+      {
+        c: { traffic: "a", visibility: "a", users: "a" },
+        r: "External HTTP(S) LB (Global)",
+        w: "Global HTTP/S with external clients",
+        d: "https://cloud.google.com/load-balancing/docs/https"
+      },
+      {
+        c: { traffic: "a", visibility: "b" },
+        r: "Internal HTTP(S) LB",
+        w: "Internal HTTP/S traffic",
+        d: "https://cloud.google.com/load-balancing/docs/internal"
+      },
+      {
+        c: { traffic: "b", visibility: "a", features: "a" },
+        r: "TCP/SSL Proxy LB",
+        w: "TCP with SSL offloading",
+        d: "https://cloud.google.com/load-balancing/docs/tcp"
+      },
+      {
+        c: { traffic: "b", visibility: "a" },
+        r: "TCP/UDP Network LB",
+        w: "External TCP/UDP",
+        d: "https://cloud.google.com/load-balancing/docs/network"
+      },
+      {
+        c: { traffic: "b", visibility: "b" },
+        r: "Internal TCP/UDP LB",
+        w: "Internal TCP only",
+        d: "https://cloud.google.com/load-balancing/docs/internal"
+      },
+    ];
+
+    // Reference to the root div where app will render
+    const app = document.getElementById("app");
+
+    // Stores user's selected answers
+    const answers = {};
+
+    // Renders all questions and the result section
+    function render() {
+      app.innerHTML = "";
+
+      // Render each question with radio button options
+      questions.forEach(q => {
+        const div = document.createElement("div");
+        div.className = "question";
+
+        // Question text
+        const title = document.createElement("p");
+        title.innerText = q.q;
+        div.appendChild(title);
+
+        // Radio options
+        for (const [val, label] of Object.entries(q.options)) {
+          const opt = document.createElement("label");
+          opt.innerHTML = `<input type="radio" name="${q.id}" value="${val}" onchange="setAnswer('${q.id}', '${val}')"> ${label}<br>`;
+          div.appendChild(opt);
+        }
+
+        app.appendChild(div);
+      });
+
+      // Submit button to get recommendation
+      const btn = document.createElement("button");
+      btn.innerText = "Get Recommendation";
+      btn.onclick = showResult;
+      app.appendChild(btn);
+
+      // Placeholder for showing the result
+      const result = document.createElement("div");
+      result.id = "result";
+      app.appendChild(result);
+    }
+
+    // Updates answer when an option is selected
+    function setAnswer(id, val) {
+      answers[id] = val;
+    }
+
+    // Logic to compare answers with rules and display recommendation
+    function showResult() {
+      const resultBox = document.getElementById("result");
+
+      // Find the first rule that matches all selected conditions
+      let match = rules.find(rule =>
+        Object.entries(rule.c).every(([k, v]) => answers[k] === v)
+      );
+
+      // If no match is found, show fallback
+      if (!match) {
+        resultBox.innerHTML = `
+          <div class='result'>
+            <strong>No exact match found.</strong><br>
+            Check GCP docs: <a href='https://cloud.google.com/load-balancing/docs' target="_blank">link</a>
+          </div>`;
+        return;
+      }
+
+      // If match found, show recommendation
+      resultBox.innerHTML = `
+        <div class='result'>
+          <strong>✅ ${match.r}</strong><br>
+          Why: ${match.w}<br>
+          <a href="${match.d}" target="_blank">Documentation</a>
+        </div>
+      `;
+    }
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>
